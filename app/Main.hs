@@ -43,8 +43,8 @@ xpWindow =
          ) $
   xpPair (xpAttr "nick" xpText) (xpAttr "geometry" xpText)
 
-getGeomList :: ScreenRes -> IO [Maybe WindowPlacement]
-getGeomList r  = runX $ readDocument [withRemoveWS yes] "/home/andrei/.config/amkhlv/wint.xml"  >>>
+getGeomList :: ScreenRes -> String -> IO [Maybe WindowPlacement]
+getGeomList r homeDir  = runX $ readDocument [withRemoveWS yes] (homeDir ++ "/.wmjump/wint.xml")  >>>
   getChildren >>>
   getChildren >>>
   hasAttrValue "resolution" (\x -> x == r) >>>
@@ -138,7 +138,7 @@ main = do
   homeDir <- getHomeDirectory
   (curWS,res) <- getCurrentWSAndRes
   putStrLn $ "desktop: " ++ curWS ++ "\nresolution: " ++ res
-  wmap <- winsToMap <$> getGeomList res
+  wmap <- winsToMap <$> getGeomList res homeDir
   wins <- getWindows curWS
   let cwins = charhint wins
   print (length wins)
