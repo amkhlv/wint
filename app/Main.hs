@@ -83,7 +83,6 @@ getWindows ws =
         "wmctrl"
         ["-l", "-x"]){SP.std_in = SP.CreatePipe, SP.std_out = SP.CreatePipe, SP.std_err = SP.CreatePipe}
     hClose hin
-    putStrLn ("^0x(\\w+)\\s+" ++ ws ++ "\\s+\\S+\\s+(.+)")
     let inWS = C.pack ("^0x(\\w+)\\s+" ++ ws ++ "\\s+(\\w+)\\.\\w+\\s+\\S+\\s+(.+)")
     let f acc = do
               e <- hIsEOF hout
@@ -99,7 +98,7 @@ getWindows ws =
 
 
 strToInt :: String -> Int
-strToInt x = read x
+strToInt = read
 
 execStr :: String -> IO ()
 execStr x = do
@@ -127,10 +126,15 @@ xwinlabel name txt = do
 goAhead :: Gtk.Entry -> Map Char XWin -> Map String String -> IO ()
 goAhead en cwins wmap = do
   t <- Gtk.entryGetText en
-  let usels = [Data.List.Split.split (condense . dropDelims $ oneOf ":,.") x |
-               x <- Data.List.Split.split (condense . dropDelims $ oneOf " ") (T.unpack t)]
-  sequence_ [execStr ("wmctrl -i -r 0x" ++ (wid $ cwins ! (head $ head iname)) ++ " -e 0," ++ (wmap ! head (tail iname))) | iname <- usels]
-  Gtk.mainQuit
+  if T.null t
+  then Gtk.mainQuit
+  else do
+        let usels = [Data.List.Split.split (condense . dropDelims $ oneOf ":,.") x |
+                     x <- Data.List.Split.split (condense . dropDelims $ oneOf " ") (T.unpack t)]
+        sequence_ [execStr
+                   ("wmctrl -i -r 0x" ++ (wid $ cwins ! (head $ head iname)) ++ " -e 0," ++ (wmap ! head (tail iname)))
+                   | iname <- usels]
+        Gtk.mainQuit
 
 
 main :: IO ()
@@ -139,10 +143,10 @@ main = do
   (curWS,res) <- getCurrentWSAndRes
   putStrLn $ "desktop: " ++ curWS ++ "\nresolution: " ++ res
   wmap <- winsToMap <$> getGeomList res homeDir
+  putStrLn "" >> putStr "Available Keys: " >> sequence_ [ putStr (w ++ " ") | w <- keys wmap ]
+  putStrLn ""
   wins <- getWindows curWS
   let cwins = charhint wins
-  print (length wins)
-  putStrLn "" >> putStr "Available Keys: " >> sequence_ [ putStr (w ++ " ") | w <- keys wmap ]
 
   Gtk.init Nothing
   cssp <- cssProviderNew
