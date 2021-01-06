@@ -10,7 +10,13 @@ This program requires `wmctrl`:
 
 Also, to build this program, need to install some dev libraries:
 
-    aptitude install libgirepository1.0-dev libwebkit2gtk-4.0-dev libgtksourceview-3.0-dev
+    aptitude install haskell-stack libgirepository1.0-dev libwebkit2gtk-4.0-dev libgtksourceview-3.0-dev
+
+After these dependencies are installed, build with the command:
+
+    stack install
+
+This will put the executable into `~/.local/bin/`, so make sure that `~/.local/bin/` is on the `PATH`.
 
 # Sample config file
 
